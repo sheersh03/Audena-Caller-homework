@@ -2,7 +2,6 @@
 // In a real system this would be an server call to a third-party service.
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { CreateCallSchema } from "@/lib/validators";
 import { getBaseUrl } from "@/lib/url";
@@ -10,13 +9,20 @@ import { getBaseUrl } from "@/lib/url";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function skipBuildPhase() {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
 export async function GET(req: NextRequest) {
+  if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   requireAuth(req);
+  const { prisma } = await import("@/lib/db");
   const calls = await prisma.call.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
   return NextResponse.json({ calls });
 }
 
 export async function POST(req: NextRequest) {
+  if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   requireAuth(req);
 
   const json = await req.json().catch(() => null);
@@ -29,6 +35,7 @@ export async function POST(req: NextRequest) {
   const parsedScheduledAt = scheduledAt ? new Date(scheduledAt) : null;
   const hasValidSchedule = parsedScheduledAt && !Number.isNaN(parsedScheduledAt.getTime());
 
+  const { prisma } = await import("@/lib/db");
   const call = await prisma.call.create({
     data: {
       customerName: customerName.trim(),
@@ -61,7 +68,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   requireAuth(req);
+  const { prisma } = await import("@/lib/db");
   await prisma.call.deleteMany();
   return NextResponse.json({ success: true });
 }

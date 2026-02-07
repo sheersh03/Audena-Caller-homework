@@ -13,6 +13,7 @@ if (databaseUrl?.startsWith("file:") && !process.env.VERCEL) {
   const filePart = databaseUrl.slice("file:".length).split("?")[0];
   const absolutePath = resolve(process.cwd(), filePart);
   mkdirSync(dirname(absolutePath), { recursive: true });
+  process.env.DATABASE_URL = `file:${absolutePath}`;
 }
 
 export const prisma =
