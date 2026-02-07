@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/data/dev.db
+      APP_URL: http://web:3000
+      API_TOKEN: audena-secret # Demo token only; use a secure secret in production, with user specific tokens and proper authentication/authorization.
+      NEXT_PUBLIC_API_TOKEN: audena-secret # Demo token only; use a secure secret in production, with user specific tokens and proper authentication/authorization.
+      PROVIDER_DELAY_MS_MIN: 800
+      PROVIDER_DELAY_MS_MAX: 2200
+      PROVIDER_FAIL_RATE: 0.15
+    volumes:
+      - db-data:/data
+
+volumes:
+  db-data:

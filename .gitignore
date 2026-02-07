@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build / Next.js
+.next
+out
+dist
+*.tsbuildinfo
+
+# Environment (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Database (local SQLite files)
+data
+dev.db
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# Optional: Vercel, Turbo, coverage
+.vercel
+.turbo
+coverage
+.nyc_output

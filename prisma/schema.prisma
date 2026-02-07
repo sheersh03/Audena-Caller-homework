@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Call {
+  id           String   @id @default(cuid())
+  customerName String
+  phoneNumber  String
+
+  /// SQLite does not support native enums; we store these as strings
+  /// and enforce allowed values via API validation (zod).
+  workflow     String
+  status       String   @default("PENDING")
+  scheduledAt  DateTime?
+
+  providerId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+}
