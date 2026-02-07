@@ -7,8 +7,9 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+// Only touch filesystem for file: URLs and never during Vercel build (no persistent fs)
 const databaseUrl = process.env.DATABASE_URL;
-if (databaseUrl?.startsWith("file:")) {
+if (databaseUrl?.startsWith("file:") && !process.env.VERCEL) {
   const filePart = databaseUrl.slice("file:".length).split("?")[0];
   const absolutePath = resolve(process.cwd(), filePart);
   mkdirSync(dirname(absolutePath), { recursive: true });
