@@ -1,0 +1,9 @@
+node_modules
+.next
+dev.db
+.git
+.env
+data
+__MACOSX
+*.log
+.DS_Store
