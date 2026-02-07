@@ -162,14 +162,9 @@ docker compose down -v
 
 ---
 
-## Option C — Our App is soft live on netlify with live DB Turso for Realtime database transactions, please use below URL :
+## Option C — Our App is soft live on Netlify with Turso-backed realtime transactions
 
-
-Go To : 
-
-```bash
-* [https://audenacaller.netlify.app](https://audenacaller.netlify.app)
-```
+Go to: [https://audenacaller.netlify.app](https://audenacaller.netlify.app)
 
 ---
 
