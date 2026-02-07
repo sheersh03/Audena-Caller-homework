@@ -13,17 +13,54 @@ function skipBuildPhase() {
   return process.env.NEXT_PHASE === "phase-production-build";
 }
 
+function hasDatabase() {
+  return !!(process.env.DATABASE_URL || process.env.TURSO_DATABASE_URL);
+}
+
 function isAuthError(err: unknown): err is Error & { status?: number } {
   return err instanceof Error && (err as Error & { status?: number }).status === 401;
+}
+
+function isDbError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const name = (err as Error).name ?? "";
+  const msg = String((err as Error).message ?? "");
+  return (
+    "code" in err ||
+    name.includes("Prisma") ||
+    msg.includes("Prisma") ||
+    msg.includes("database") ||
+    msg.includes("DATABASE_URL")
+  );
+}
+
+function handleApiError(err: unknown, context: { route: string; defaultMessage: string }) {
+  if (isAuthError(err)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (isDbError(err)) {
+    return NextResponse.json(
+      {
+        error:
+          "Database unavailable. Set DATABASE_URL (SQLite/Postgres) or TURSO_DATABASE_URL + TURSO_AUTH_TOKEN (Turso).",
+        ...(context.route === "GET" ? { calls: [] } : {}),
+      },
+      { status: 503 }
+    );
+  }
+  console.error(`[${context.route}]`, err);
+  const body: { error: string; calls?: unknown[] } = { error: context.defaultMessage };
+  if (context.route === "GET") body.calls = [];
+  return NextResponse.json(body, { status: 500 });
 }
 
 export async function GET(req: NextRequest) {
   if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   try {
     requireAuth(req);
-    if (!process.env.DATABASE_URL) {
+    if (!hasDatabase()) {
       return NextResponse.json(
-        { error: "Database not configured. Set DATABASE_URL in Vercel.", calls: [] },
+        { error: "Database not configured. Set DATABASE_URL or TURSO_DATABASE_URL (see TURSO.md).", calls: [] },
         { status: 503 }
       );
     }
@@ -31,16 +68,7 @@ export async function GET(req: NextRequest) {
     const calls = await prisma.call.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
     return NextResponse.json({ calls });
   } catch (err) {
-    if (isAuthError(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    if (err && typeof err === "object" && "code" in err) {
-      return NextResponse.json(
-        { error: "Database unavailable. Check DATABASE_URL and that the database exists.", calls: [] },
-        { status: 503 }
-      );
-    }
-    throw err;
+    return handleApiError(err, { route: "GET", defaultMessage: "Failed to load calls" });
   }
 }
 
@@ -48,9 +76,9 @@ export async function POST(req: NextRequest) {
   if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   try {
     requireAuth(req);
-    if (!process.env.DATABASE_URL) {
+    if (!hasDatabase()) {
       return NextResponse.json(
-        { error: "Database not configured. Set DATABASE_URL in Vercel." },
+        { error: "Database not configured. Set DATABASE_URL or TURSO_DATABASE_URL (see TURSO.md)." },
         { status: 503 }
       );
     }
@@ -96,16 +124,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ call }, { status: 201 });
   } catch (err) {
-    if (isAuthError(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    if (err && typeof err === "object" && "code" in err) {
-      return NextResponse.json(
-        { error: "Database unavailable. Check DATABASE_URL and that the schema is applied (prisma db push)." },
-        { status: 503 }
-      );
-    }
-    throw err;
+    return handleApiError(err, { route: "POST", defaultMessage: "Failed to create call" });
   }
 }
 
@@ -113,19 +132,13 @@ export async function DELETE(req: NextRequest) {
   if (skipBuildPhase()) return NextResponse.json(null, { status: 204 });
   try {
     requireAuth(req);
-    if (!process.env.DATABASE_URL) {
+    if (!hasDatabase()) {
       return NextResponse.json({ error: "Database not configured." }, { status: 503 });
     }
     const { prisma } = await import("@/lib/db");
     await prisma.call.deleteMany();
     return NextResponse.json({ success: true });
   } catch (err) {
-    if (isAuthError(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    if (err && typeof err === "object" && "code" in err) {
-      return NextResponse.json({ error: "Database unavailable." }, { status: 503 });
-    }
-    throw err;
+    return handleApiError(err, { route: "DELETE", defaultMessage: "Failed to clear calls" });
   }
 }

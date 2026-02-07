@@ -30,7 +30,7 @@ This exercise intentionally avoids real telephony/AI and focuses on **clarity, p
   * Create a call
   * List calls
   * Update call status (manual)
-* SQLite persistence via Prisma
+* **Database**: SQLite via Prisma — either **file-based** (local/Docker) or **Turso** (serverless, for Netlify/Vercel)
 
 ### Simulated External Integration (Twilio-like)
 
@@ -58,9 +58,10 @@ This exercise intentionally avoids real telephony/AI and focuses on **clarity, p
 * **Next.js (App Router) + React**
 * **TypeScript**
 * **Tailwind CSS**
-* **Prisma + SQLite**
+* **Prisma + SQLite** (file-based locally, or **Turso** for serverless)
 * **Zod** for request validation
 * **Docker + Docker Compose** for one-command setup
+* **Turso** (optional) — serverless SQLite via libSQL for production (Netlify/Vercel)
 
 ---
 
@@ -69,8 +70,9 @@ This exercise intentionally avoids real telephony/AI and focuses on **clarity, p
 * `app/` — UI pages + API routes
 * `components/` — UI components (form, table, status badge)
 * `lib/` — helpers (db, validation, provider logic, auth)
-* `prisma/` — Prisma schema
+* `prisma/` — Prisma schema + `turso-schema.sql` (for Turso)
 * `Dockerfile`, `docker-compose.yml` — containerization
+* `netlify.toml` — Netlify build config
 
 ---
 
@@ -102,13 +104,9 @@ cp .env.example .env
 npm run db:generate
 ```
 
-### 4) Create/update DB schema (SQLite)
+### 4) Create/update DB schema
 
-```bash
-npm run db:push
-```
-
-This creates `dev.db` in the project root (based on `DATABASE_URL`).
+* **File SQLite:** `npm run db:push` (creates/updates e.g. `./data/dev.db`).
 
 ### 5) Start the dev server
 
@@ -233,17 +231,14 @@ This project includes **optional** API protection using a static bearer token.
 
 ### Enable it
 
-Set `API_TOKEN` in `.env`:
+Set in `.env` (and on Netlify/Vercel if you deploy):
 
 ```env
 API_TOKEN="my-secret-token"
+NEXT_PUBLIC_API_TOKEN="my-secret-token"
 ```
 
-Now requests must include:
-
-```
-Authorization: Bearer my-secret-token
-```
+The frontend uses `NEXT_PUBLIC_API_TOKEN` for `Authorization: Bearer ...`; the API validates against `API_TOKEN`. Keep both the same value.
 
 If `API_TOKEN` is empty, auth is **disabled** (default) to keep setup friction-free for reviewers.
 
@@ -256,11 +251,10 @@ If `API_TOKEN` is empty, auth is **disabled** (default) to keep setup friction-f
 * Keeps setup simple and review-friendly
 * Still enforces clean boundaries via separate API routes and modules
 
-### 2) SQLite + Prisma for persistence
+### 2) SQLite + Prisma for persistence (file or Turso)
 
-* Lightweight, zero-infra database
-* Easy to run locally and in Docker
-* Clear schema and repeatable setup
+* **Local/Docker:** file-based SQLite (`DATABASE_URL=file:...`); zero infra, easy to run.
+* **Production (Netlify/Vercel):** **Turso** (serverless SQLite via libSQL) so we keep the same Prisma/SQLite model without running Postgres.
 
 ### 3) Workflows and status as strings (validated at API boundary)
 

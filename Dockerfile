@@ -4,7 +4,10 @@
     FROM node:20 AS deps
     WORKDIR /app
     COPY package.json package-lock.json* ./
-    RUN npm ci
+RUN npm config set fetch-timeout 120000 \
+ && npm config set fetch-retry-maxtimeout 120000 \
+ && npm config set fetch-retry-mintimeout 1000 \
+ && npm ci --prefer-offline --no-progress --fetch-timeout=120000
     
     # -----------------------------
     # Builder
