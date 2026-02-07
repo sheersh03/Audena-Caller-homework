@@ -107,7 +107,10 @@ npm run db:generate
 ### 4) Create/update DB schema
 
 * **File SQLite:** - (creates/updates e.g. `./data/dev.db`).
+
+```bash
 `npm run db:push` 
+```
 
 ### 5) Start the dev server
 
