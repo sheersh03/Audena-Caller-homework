@@ -106,7 +106,8 @@ npm run db:generate
 
 ### 4) Create/update DB schema
 
-* **File SQLite:** `npm run db:push` (creates/updates e.g. `./data/dev.db`).
+* **File SQLite:** - (creates/updates e.g. `./data/dev.db`).
+`npm run db:push` 
 
 ### 5) Start the dev server
 
@@ -157,6 +158,17 @@ If you want a clean DB:
 
 ```bash
 docker compose down -v
+```
+
+---
+
+## Option C — Our App is soft live on netlify with live DB Turso for Realtime database transactions, please use below URL :
+
+
+Go To : 
+
+```bash
+* [https://audenacaller.netlify.app](https://audenacaller.netlify.app)
 ```
 
 ---
