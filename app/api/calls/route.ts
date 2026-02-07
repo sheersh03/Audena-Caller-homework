@@ -8,6 +8,7 @@ import { CreateCallSchema } from "@/lib/validators";
 import { getBaseUrl } from "@/lib/url";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   requireAuth(req);

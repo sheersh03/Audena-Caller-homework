@@ -8,6 +8,7 @@ import { pickOutcome, pickProviderDelayMs } from "@/lib/provider";
 import { getBaseUrl } from "@/lib/url";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   requireAuth(req);
